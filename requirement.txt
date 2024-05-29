@@ -1,0 +1,14 @@
+streamlit
+instaloader
+os
+Post
+Path
+urlparse
+parse_qs
+re
+requests
+bs4
+tqdm
+Path
+YouTube
+AudioSegment
