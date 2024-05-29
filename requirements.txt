@@ -1,6 +1,5 @@
 streamlit
 instaloader
-Post
 Path
 urlparse
 parse_qs
