@@ -1,7 +1,6 @@
 streamlit
 instaloader
 Path
-parse_qs
 re
 time
 requests
