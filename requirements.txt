@@ -1,14 +1,9 @@
 streamlit
 instaloader
-Path
-urlparse
-parse_qs
-re
-time
 requests
-option_menu
 bs4
 tqdm
-Path
-YouTube
+pathlib
 AudioSegment
+pytube
+streamlit_option_menu
