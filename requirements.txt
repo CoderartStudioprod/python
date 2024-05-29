@@ -1,7 +1,6 @@
 streamlit
 instaloader
 Path
-re
 time
 requests
 option_menu
