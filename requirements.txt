@@ -1,7 +1,6 @@
 streamlit
 instaloader
 Path
-urlparse
 parse_qs
 re
 time
