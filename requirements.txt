@@ -1,11 +1,9 @@
 streamlit
 instaloader
 Path
-time
 requests
 option_menu
 bs4
 tqdm
-Path
 YouTube
 AudioSegment
