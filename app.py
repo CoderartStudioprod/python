@@ -1,11 +1,12 @@
-import instaloader
 import streamlit as st
+import instaloader
 from instaloader import Post
 import os
 from urllib.parse import urlparse, parse_qs
 import requests
 import time
 from streamlit_option_menu import option_menu
+import sys
 import re
 import requests
 import bs4
@@ -52,12 +53,14 @@ def display_media(media_path):
 
 
 
-st.set_page_config(page_title="Bit Link Downloader",
+st.set_page_config(page_title="InstaLink Downloader",
                     page_icon="😍",
                     )
 # Remove whitespace from the top of the page and sidebar
 st.markdown("""
         <style>
+              #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
               .block-container {
                     align:center;
                     padding-top: 1rem;
