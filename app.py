@@ -1,13 +1,11 @@
-import streamlit as st
 import instaloader
+import streamlit as st
 from instaloader import Post
 import os
-from pathlib import Path
 from urllib.parse import urlparse, parse_qs
 import requests
 import time
 from streamlit_option_menu import option_menu
-import sys
 import re
 import requests
 import bs4
