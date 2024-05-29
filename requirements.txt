@@ -1,6 +1,9 @@
 streamlit
 instaloader
-Path
 requests
-YouTube
+bs4
+tqdm
+pathlib
 AudioSegment
+pytube
+streamlit_option_menu
