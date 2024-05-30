@@ -19,8 +19,8 @@ L = instaloader.Instaloader()
 
 def is_instagram_reels_url(url) -> bool:
     """
-    Check the url is instagram reels url?
-    :param url: instagram reels url
+    Check if the URL is an Instagram reels URL.
+    :param url: Instagram reels URL
     :return: bool
     """
     pattern = r"https?://(?:www\.)?instagram\.com/reel/.*"
@@ -29,22 +29,24 @@ def is_instagram_reels_url(url) -> bool:
 
 def download_reel(url) -> bytes:
     """
-    Download reels video
+    Download Instagram reels video.
 
-    :param url: instagram reels url
+    :param url: Instagram reels URL
     :return: bytes
     """
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
     response = requests.get(url, headers=headers)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    video_tag = soup.find('meta', property='og:video')
-    if video_tag and 'content' in video_tag.attrs:
-        video_url = video_tag['content']
-        return requests.get(video_url).content
+    if response.ok:
+        # Search for the video URL in the response content
+        match = re.search(r'"video_url":"([^"]+)"', response.text)
+        if match:
+            video_url = match.group(1).replace("\\u0026", "&")
+            return requests.get(video_url).content
+        else:
+            raise ValueError("Could not find video URL")
     else:
-        raise ValueError("Could not find video URL")
-
+        raise ValueError("Failed to fetch reel content")
 def get_download_path():
     """Return the default downloads path for the current OS."""
     return str(Path.home() / "Downloads")
@@ -57,13 +59,48 @@ def save_reel_content(content, shortcode):
     with open(file_path, 'wb') as file:
         file.write(content)
     return file_path
-
+def download_with_url(url, target_folder):
+    """Download a file from a URL."""
+    filename = url.split("/")[-1]
+    filepath = os.path.join(target_folder, filename)
+    with open(filepath, "wb") as f:
+        response = requests.get(url)
+        f.write(response.content)
 def display_media(file_path):
     """Display the media file in the Streamlit app."""
     st.video(file_path)
     with open(file_path, 'rb') as file:
         st.download_button(label=f"Download {os.path.basename(file_path)}", data=file, file_name=os.path.basename(file_path))
-
+def download_instagram_content(url):
+    try:
+        download_folder = get_download_path()
+        shortcode = url.split("/")[-2]
+        post = Post.from_shortcode(L.context, shortcode)
+        target_folder = os.path.join(download_folder, f"Instagram_{shortcode}")
+        os.makedirs(target_folder, exist_ok=True)
+        
+        # Change working directory to target folder to download files there
+        os.chdir(target_folder)
+        
+        # Check if the post is a Reel
+        if post.typename == "GraphSidecar":
+            # For Reel posts, extract video URL from the sidecar nodes
+            for sidecar_node in post.get_sidecar_nodes():
+                if sidecar_node.is_video:
+                    video_url = sidecar_node.video_url
+                    # Download the video using the video URL
+                    download_with_url(video_url, target_folder)
+        elif post.typename == "GraphVideo":
+            # For single video posts
+            video_url = post.video_url
+            # Download the video using the video URL
+            download_with_url(video_url, target_folder)
+        else:
+            return False, "Unsupported post type"
+        
+        return True, target_folder
+    except Exception as e:
+        return False, str(e)
 st.set_page_config(page_title="InstaLink Downloader",
                    page_icon="😍",
                   )
@@ -118,16 +155,15 @@ with tab1:
     url = st.text_input("Enter the Instagram Reel URL:")
     if st.button("Fetch"):
         if url and is_instagram_reels_url(url):
-            try:
-                reel_content = download_reel(url)
-                shortcode = url.split("/")[-2]
-                file_path = save_reel_content(reel_content, shortcode)
-                st.success(f"Reel downloaded successfully! Saved to {file_path}")
-                display_media(file_path)
-            except Exception as e:
-                st.error(f"Failed to download content: {e}")
+            success, media_path = download_instagram_content(url)
+            if success:
+                st.success(f"Content downloaded successfully! Saved to {media_path}")
+                if st.button("Show Preview"):
+                    display_media(media_path)
+            else:
+                st.error(f"Failed to download content: {media_path}")
         else:
-            st.error("Please enter a valid Instagram reel URL.")
+            st.error("Please enter a valid URL.")
 
 with tab2:
     st.header("Twitter Downloader", divider="rainbow")
