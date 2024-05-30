@@ -1,6 +1,7 @@
 streamlit
 instaloader
 selenium
+BeautifulSoup
 requests
 bs4
 tqdm
