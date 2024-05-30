@@ -7,11 +7,11 @@ import requests
 import time
 from streamlit_option_menu import option_menu
 import re
+import bs4
 from tqdm import tqdm
 from pathlib import Path
 from pytube import YouTube
 from pydub import AudioSegment
-from bs4 import BeautifulSoup
 
 # Initialize Instaloader
 L = instaloader.Instaloader()
