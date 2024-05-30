@@ -66,11 +66,43 @@ def download_with_url(url, target_folder):
     with open(filepath, "wb") as f:
         response = requests.get(url)
         f.write(response.content)
-def display_media(file_path):
-    """Display the media file in the Streamlit app."""
-    st.video(file_path)
-    with open(file_path, 'rb') as file:
-        st.download_button(label=f"Download {os.path.basename(file_path)}", data=file, file_name=os.path.basename(file_path))
+
+
+        
+def display_media(video_url):
+    video_html = f"""
+    <video width="640" height="360" controls>
+        <source src="{video_url}" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+      <br>
+     <a href="{video_url}" target="_blank" class="button">Download Now</a>
+    <style>
+        .button {{
+            background-color: #240750;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+            border-radius: 8px;
+        }}
+        .button:hover {{
+            background-color: #45a049;
+        }}
+    </style>
+    """
+    st.markdown(video_html, unsafe_allow_html=True)
+
+# Usage
+# video_url = "https://scontent.cdninstagram.com/v/t66.30100-16/52479184_3903520139871958_8407921493330542272_n.mp4?_nc_ht=instagram.fbho2-1.fna.fbcdn.net&_nc_cat=110&_nc_ohc=CWy62tdfLtMQ7kNvgF7wu3e&edm=AP_V10EBAAAA&ccb=7-5&oh=00_AYD4s5Vu8sFxD5Q1o3Yllz7oRxVEEXKXGwh4idsREaspcQ&oe=665AC875&_nc_sid=2999b8"
+
+
 def download_instagram_content(url):
     try:
         download_folder = get_download_path()
@@ -88,19 +120,27 @@ def download_instagram_content(url):
             for sidecar_node in post.get_sidecar_nodes():
                 if sidecar_node.is_video:
                     video_url = sidecar_node.video_url
-                    # Download the video using the video URL
-                    download_with_url(video_url, target_folder)
+                    # Debugging: Print the video URL
+                    print("Video UR2L:", video_url)
+                    # Display the video directly
+                    # st.video(video_url+".mp4")
         elif post.typename == "GraphVideo":
             # For single video posts
             video_url = post.video_url
-            # Download the video using the video URL
-            download_with_url(video_url, target_folder)
+            # Debugging: Print the video URL
+            print("Video URL1:", video_url)
+            display_media(video_url)
+            # Display the video directly
+            # st.video(video_url)
         else:
             return False, "Unsupported post type"
         
         return True, target_folder
     except Exception as e:
+        # Debugging: Print any errors encountered
+        print("Error:", e)
         return False, str(e)
+
 st.set_page_config(page_title="InstaLink Downloader",
                    page_icon="😍",
                   )
