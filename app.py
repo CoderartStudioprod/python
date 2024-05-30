@@ -11,6 +11,7 @@ import bs4
 from tqdm import tqdm
 from pathlib import Path
 from pytube import YouTube
+from bs4 import BeautifulSoup
 from pydub import AudioSegment
 
 # Initialize Instaloader
