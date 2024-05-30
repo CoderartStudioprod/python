@@ -212,4 +212,51 @@ with tab1:
     url = st.text_input("Enter the Instagram URL:")
     if st.button("Fetch"):
         if url:
-            success
+            success, media_path = download_instagram_content(url)
+            if success:
+                st.success(f"Content downloaded successfully! Saved to {media_path}")
+                if st.button("Show Preview"):
+                    display_media(media_path)
+            else:
+                st.error(f"Failed to download content: {media_path}")
+        else:
+            st.error("Please enter a valid URL.")
+
+with tab2:
+    st.header("Twitter Downloader", divider="rainbow")
+    url = st.text_input("Enter the Twitter Video URL")
+    if st.button("Download Video"):
+        if url:
+            download_twitter_video(url)
+        else:
+            st.error("Please enter a valid Twitter video URL.")
+
+with tab3:
+    st.title('YouTube Video Downloader')
+    url = st.text_input('Enter YouTube URL:', '')
+    download_type = st.radio('Select Download Type:', ('Video (mp4)', 'Audio (mp3)'))
+    if st.button('Download'):
+        if url:
+            st.write('Downloading...')
+            file_path = download_youtube_video(url, download_type)
+            if os.path.exists(file_path):
+                st.success('Download completed!')
+                file_name = os.path.basename(file_path)
+                st.download_button(label=f"Download {file_name}", data=open(file_path, "rb").read(), file_name=file_name)
+        else:
+            st.error("Please enter a valid YouTube URL.")
+
+with tab4:
+    st.header("Other Platform Downloader", divider="rainbow")
+    url = st.text_input("Enter the URL")
+    if st.button("Download"):
+        if url:
+            download_link = download_dynamic_link(url)
+            if download_link:
+                st.success(f"Download link: {download_link}")
+                st.write(download_link)
+            else:
+                st.error("Failed to retrieve download link.")
+        else:
+            st.error("Please enter a valid URL.")
+
