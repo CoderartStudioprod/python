@@ -27,14 +27,10 @@ def download_instagram_content(url):
         post = Post.from_shortcode(L.context, shortcode)
         target_folder = os.path.join(download_folder, f"Instagram_{shortcode}")
         os.makedirs(target_folder, exist_ok=True)
-        
-        # Change working directory to target folder to download files there
-        os.chdir(target_folder)
+
+        # Download post to the target folder
         L.download_post(post, target=target_folder)
-        
-        # Revert working directory
-        os.chdir(download_folder)
-        
+
         return True, target_folder
     except Exception as e:
         return False, str(e)
@@ -235,7 +231,7 @@ with tab3:
     st.title('YouTube Video Downloader')
     url = st.text_input('Enter YouTube URL:', '')
     download_type = st.radio('Select Download Type:', ('Video (mp4)', 'Audio (mp3)'))
-    if st.button('Download'):
+    if st.button('youtube Download'):
         if url:
             st.write('Downloading...')
             file_path = download_youtube_video(url, download_type)
@@ -249,7 +245,7 @@ with tab3:
 with tab4:
     st.header("Other Platform Downloader", divider="rainbow")
     url = st.text_input("Enter the URL")
-    if st.button("Download"):
+    if st.button("url Download"):
         if url:
             download_link = download_dynamic_link(url)
             if download_link:
