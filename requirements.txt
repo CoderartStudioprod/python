@@ -1,5 +1,6 @@
 streamlit
 instaloader
+selenium
 requests
 bs4
 tqdm
