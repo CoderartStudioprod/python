@@ -105,6 +105,7 @@ def display_media(video_url):
 
 def download_instagram_content(url):
     try:
+        L = instaloader.Instaloader() 
         download_folder = get_download_path()
         shortcode = url.split("/")[-2]
         post = Post.from_shortcode(L.context, shortcode)
