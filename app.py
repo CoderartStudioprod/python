@@ -4,79 +4,32 @@ from instaloader import Post
 import os
 from urllib.parse import urlparse, parse_qs
 import requests
-import time
-from streamlit_option_menu import option_menu
 import re
-import bs4
-from tqdm import tqdm
 from pathlib import Path
 from pytube import YouTube
-from bs4 import BeautifulSoup
 from pydub import AudioSegment
+from tqdm import tqdm
+import bs4
+from bs4 import BeautifulSoup
 
-# Initialize Instaloader
-
-
+# Function to check if the URL is an Instagram reels URL
 def is_instagram_reels_url(url) -> bool:
-    """
-    Check if the URL is an Instagram reels URL.
-    :param url: Instagram reels URL
-    :return: bool
-    """
     pattern = r"https?://(?:www\.)?instagram\.com/reel/.*"
-    match = re.match(pattern, url)
-    return bool(match)
+    return bool(re.match(pattern, url))
 
-def download_reel(url) -> bytes:
-    """
-    Download Instagram reels video.
-
-    :param url: Instagram reels URL
-    :return: bytes
-    """
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
-    response = requests.get(url, headers=headers)
-    if response.ok:
-        # Search for the video URL in the response content
-        match = re.search(r'"video_url":"([^"]+)"', response.text)
-        if match:
-            video_url = match.group(1).replace("\\u0026", "&")
-            return requests.get(video_url).content
-        else:
-            raise ValueError("Could not find video URL")
-    else:
-        raise ValueError("Failed to fetch reel content")
+# Function to get the default download path
 def get_download_path():
-    """Return the default downloads path for the current OS."""
     return str(Path.home() / "Downloads")
 
-def save_reel_content(content, shortcode):
-    download_folder = get_download_path()
-    target_folder = os.path.join(download_folder, f"Instagram_{shortcode}")
-    os.makedirs(target_folder, exist_ok=True)
-    file_path = os.path.join(target_folder, f"{shortcode}.mp4")
-    with open(file_path, 'wb') as file:
-        file.write(content)
-    return file_path
-def download_with_url(url, target_folder):
-    """Download a file from a URL."""
-    filename = url.split("/")[-1]
-    filepath = os.path.join(target_folder, filename)
-    with open(filepath, "wb") as f:
-        response = requests.get(url)
-        f.write(response.content)
-
-
-        
+# Function to display video with download option
 def display_media(video_url):
     video_html = f"""
     <video width="640" height="360" controls>
         <source src="{video_url}" type="video/mp4">
         Your browser does not support the video tag.
     </video>
-      <br>
-     <a href="{video_url}" target="_blank" class="button">Download Now</a>
+    <br>
+    <a href="{video_url}" target="_blank" class="button">Download Now</a>
     <style>
         .button {{
             background-color: #240750;
@@ -99,99 +52,76 @@ def display_media(video_url):
     """
     st.markdown(video_html, unsafe_allow_html=True)
 
-# Usage
-# video_url = "https://scontent.cdninstagram.com/v/t66.30100-16/52479184_3903520139871958_8407921493330542272_n.mp4?_nc_ht=instagram.fbho2-1.fna.fbcdn.net&_nc_cat=110&_nc_ohc=CWy62tdfLtMQ7kNvgF7wu3e&edm=AP_V10EBAAAA&ccb=7-5&oh=00_AYD4s5Vu8sFxD5Q1o3Yllz7oRxVEEXKXGwh4idsREaspcQ&oe=665AC875&_nc_sid=2999b8"
-
-
+# Function to download Instagram content
 def download_instagram_content(url):
     try:
-        L = instaloader.Instaloader() 
+        L = instaloader.Instaloader()
         download_folder = get_download_path()
         shortcode = url.split("/")[-2]
         post = Post.from_shortcode(L.context, shortcode)
         target_folder = os.path.join(download_folder, f"Instagram_{shortcode}")
         os.makedirs(target_folder, exist_ok=True)
-        
-        # Change working directory to target folder to download files there
-        os.chdir(target_folder)
-        
+
         # Check if the post is a Reel
         if post.typename == "GraphSidecar":
-            # For Reel posts, extract video URL from the sidecar nodes
             for sidecar_node in post.get_sidecar_nodes():
                 if sidecar_node.is_video:
                     video_url = sidecar_node.video_url
-                    # Debugging: Print the video URL
-                    print("Video UR2L:", video_url)
-                    # Display the video directly
-                    # st.video(video_url+".mp4")
+                    display_media(video_url)
         elif post.typename == "GraphVideo":
-            # For single video posts
             video_url = post.video_url
-            # Debugging: Print the video URL
-            print("Video URL1:", video_url)
             display_media(video_url)
-            # Display the video directly
-            # st.video(video_url)
         else:
             return False, "Unsupported post type"
-        
+
         return True, target_folder
     except Exception as e:
-        # Debugging: Print any errors encountered
-        print("Error:", e)
         return False, str(e)
 
-st.set_page_config(page_title="InstaLink Downloader",
-                   page_icon="😍",
-                  )
+# Streamlit app settings and layout
+st.set_page_config(page_title="InstaLink Downloader", page_icon="😍")
 
 # Remove whitespace from the top of the page and sidebar
 st.markdown("""
-        <style>
-              #MainMenu {visibility: hidden;}
-            footer {visibility: hidden;}
-              .block-container {
-                    align:center;
-                    padding-top: 1rem;
-                    padding-bottom: 0rem;
-                    padding-left: 1rem;
-                }
-              .stTabs [data-baseweb="tab-list"] {
-                gap: 10px;
-                }
-              .stTabs [data-baseweb="tab"] {
-                    font-size:20px;
-                    white-space: pre-wrap;
-                    background-color: #378299;
-                    border-radius: 4px 4px 0px 0px;
-                    gap: 10px;
-                    padding-top: 1px;
-                    padding-left: 10px;
-                    padding-right: 10px;
-                }
-                .stTabs [aria-selected="true"] {
-                    background-color: #B30B19;
-                }
-              .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-                font-size:1.2rem;
-                color: #00FFDD;
-                }     
-            [data-baseweb="base-input"]{
-                 border: 1px solid #555;
-                border-radius: 3px ;
-                }
-        </style>
-    """, unsafe_allow_html=True)
+    <style>
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        .block-container {
+            padding-top: 1rem;
+        }
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 10px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            font-size: 20px;
+            white-space: pre-wrap;
+            background-color: #378299;
+            border-radius: 4px 4px 0px 0px;
+            padding: 1px 10px;
+        }
+        .stTabs [aria-selected="true"] {
+            background-color: #B30B19;
+        }
+        .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+            font-size: 1.2rem;
+            color: #00FFDD;
+        }     
+        [data-baseweb="base-input"] {
+            border: 1px solid #555;
+            border-radius: 3px;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 st.markdown("<h1 style='text-align: center; color: grey;'>Bit Link Downloader</h1>", unsafe_allow_html=True)
-st.markdown("<h6 style='text-align: center; color: #033333;'>Download videos from Instagram, Twitter, X, Terabos, YouTube, and more with our all-in-one solution. Easily save your favorite videos from multiple platforms using just a link.</h6>", unsafe_allow_html=True)
-st.subheader('The best place to download video via :blue[link] :sunglasses:')
+st.markdown("<h6 style='text-align: center; color: #033333;'>Download videos from Instagram, Twitter, YouTube, and more with our all-in-one solution. Easily save your favorite videos from multiple platforms using just a link.</h6>", unsafe_allow_html=True)
+st.subheader('The best place to download video via link')
 
-tab1, tab2, tab4, tab3 = st.tabs([":dancers: Insta", ":bird: tweet", "youtube", " :yum: Other"])
+tab1, tab2, tab3 = st.tabs([":dancers: Insta", ":bird: Twitter", "YouTube"])
 
+# Instagram Downloader Tab
 with tab1:
-    st.header("Insta Downloader", divider="rainbow")
+    st.header("Insta Downloader")
     st.write("Features of Bit Link downloader Instagram video Downloader: · Instagram video Download Fast, easy and safe. · No need to login to your Instagram account.")
     url = st.text_input("Enter the Instagram Reel URL:")
     if st.button("Fetch"):
@@ -199,23 +129,16 @@ with tab1:
             success, media_path = download_instagram_content(url)
             if success:
                 st.success(f"Content downloaded successfully! Saved to {media_path}")
-                if st.button("Show Preview"):
-                    display_media(media_path)
             else:
                 st.error(f"Failed to download content: {media_path}")
         else:
             st.error("Please enter a valid URL.")
 
+# Twitter Downloader Tab
 with tab2:
-    st.header("Twitter Downloader", divider="rainbow")
+    st.header("Twitter Downloader")
 
-    def download_video(url, file_name) -> None:
-        """Download a video from a URL into a filename.
-
-        Args:
-            url (str): The video URL to download
-            file_name (str): The file name or path to save the video to.
-        """
+    def download_video(url, file_name):
         response = requests.get(url, stream=True)
         total_size = int(response.headers.get("content-length", 0))
         block_size = 1024
@@ -232,24 +155,18 @@ with tab2:
         st.success("Video downloaded successfully!")
 
     def download_twitter_video(url):
-        """Extract the highest quality video url to download into a file
-
-        Args:
-            url (str): The twitter post URL to download from
-        """
         api_url = f"https://twitsave.com/info?url={url}"
         response = requests.get(api_url)
-        data = bs4.BeautifulSoup(response.text, "html.parser")
+        data = BeautifulSoup(response.text, "html.parser")
         download_button = data.find_all("div", class_="origin-top-right")[0]
         quality_buttons = download_button.find_all("a")
-        highest_quality_url = quality_buttons[0].get("href")  # Highest quality video url
+        highest_quality_url = quality_buttons[0].get("href")
         
-        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text  # Video file name
-        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"  # Remove special characters from file name
+        file_name = data.find_all("div", class_="leading-tight")[0].find_all("p", class_="m-2")[0].text
+        file_name = re.sub(r"[^a-zA-Z0-9]+", ' ', file_name).strip() + ".mp4"
         
         download_video(highest_quality_url, file_name)
 
-    # Streamlit UI
     url = st.text_input("Enter the Twitter Video URL")
     if st.button("Download Video"):
         if url:
@@ -257,8 +174,10 @@ with tab2:
         else:
             st.error("Please enter a valid Twitter video URL.")
 
-with tab4:
-    # Function to download YouTube video
+# YouTube Downloader Tab
+with tab3:
+    st.title('YouTube Video Downloader')
+
     def download_youtube_video(url, download_type):
         try:
             yt = YouTube(url)
@@ -278,10 +197,15 @@ with tab4:
         except Exception as e:
             return str(e)
 
-    # Streamlit UI
-    st.title('YouTube Video Downloader')
-
-    # Input for YouTube URL
     url = st.text_input('Enter YouTube URL:', '')
     download_type = st.radio('Select Download Type:', ('Video (mp4)', 'Audio (mp3)'))
-    # Button to
+    if st.button('Download'):
+        if url:
+            output_path = download_youtube_video(url, download_type)
+            if os.path.exists(output_path):
+                st.success(f"{download_type} downloaded successfully! Saved to {output_path}")
+                st.write(output_path)
+            else:
+                st.error(output_path)
+        else:
+            st.error("Please enter a valid YouTube URL.")
