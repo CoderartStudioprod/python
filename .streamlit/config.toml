@@ -1,0 +1,7 @@
+# .streamlit/config.toml
+[server]
+# Increase the maximum allowed size for uploaded files (default is 200MB)
+maxUploadSize = 200
+
+# Increase the server timeout if needed (Streamlit does not directly provide this setting, but the server should be robust)
+runOnSave = true
