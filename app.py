@@ -15,7 +15,7 @@ from bs4 import BeautifulSoup
 from pydub import AudioSegment
 
 # Initialize Instaloader
-L = instaloader.Instaloader()
+
 
 def is_instagram_reels_url(url) -> bool:
     """
